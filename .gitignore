@@ -1,1 +1,5 @@
 /target
+/.reference/
+.env
+.env.*
+!.env.example
