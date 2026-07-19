@@ -2,8 +2,6 @@ use std::sync::Arc;
 
 use rmcp::model::{TaskSupport, Tool, ToolExecution};
 
-pub use crate::contract::{MCP_PATH, SERVER_NAME, SERVER_VERSION, server_info_text};
-
 pub fn tools() -> Vec<Tool> {
     crate::contract::tool_specs().iter().map(to_tool).collect()
 }

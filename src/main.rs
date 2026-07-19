@@ -1,10 +1,16 @@
+#[cfg(not(target_arch = "wasm32"))]
 use std::net::SocketAddr;
 
+#[cfg(not(target_arch = "wasm32"))]
 use anyhow::{Context, Result};
+#[cfg(not(target_arch = "wasm32"))]
 use tokio::net::TcpListener;
+#[cfg(not(target_arch = "wasm32"))]
 use tracing::info;
+#[cfg(not(target_arch = "wasm32"))]
 use tracing_subscriber::EnvFilter;
 
+#[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt()
@@ -28,8 +34,16 @@ async fn main() -> Result<()> {
         .context("HTTP server stopped unexpectedly")
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 async fn shutdown_signal() {
     if let Err(error) = tokio::signal::ctrl_c().await {
         tracing::error!(%error, "failed to install Ctrl+C handler");
     }
 }
+
+// `cargo build --target wasm32-unknown-unknown` builds every package target.
+// The deployable Worker is the library cdylib; this no-op keeps the native
+// server binary target harmless on Wasm while preserving the existing native
+// `cargo build --release` workflow.
+#[cfg(target_arch = "wasm32")]
+fn main() {}
