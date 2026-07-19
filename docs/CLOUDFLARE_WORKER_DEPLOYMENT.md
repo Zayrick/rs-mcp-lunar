@@ -133,7 +133,7 @@ https://rs-mcp-lunar.<你的-subdomain>.workers.dev/lunar
 
 Workers Builds 的官方构建镜像目前没有把 Rust/Cargo 列为预装工具，因此 `build:cloudflare` 会在首次构建时安装项目声明的最小 Rust 1.89.0 工具链和 `wasm32-unknown-unknown` target，再调用固定版本的 worker-build。可以用 Build variable `RUST_TOOLCHAIN` 覆盖工具链版本。
 
-控制台的 Build command 必须显式填写。Cloudflare 当前说明 Workers Builds 不执行 `wrangler.jsonc` 的 custom build；如果这里只填写 `npm run build:worker`，而镜像中没有 Cargo，就会出现 `cargo: not found`。参见 [Workers Builds configuration](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) 和 [build image](https://developers.cloudflare.com/workers/ci-cd/builds/build-image/)。
+控制台的 Build command 必须显式填写，因为 Workers Builds 的构建阶段不会代替你执行 `wrangler.jsonc` 的 custom build。随后 Deploy command 启动的 Wrangler 仍可能读取并再次执行该 custom build，因此仓库中的 `build.command` 也统一使用 `npm run build:cloudflare`；这样即使部署阶段运行在不继承 Cargo PATH 的新 shell 中也能成功。不要把任一处改回 `npm run build:worker`，否则没有 Cargo 的镜像会再次出现 `cargo: not found`。参见 [Workers Builds configuration](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) 和 [build image](https://developers.cloudflare.com/workers/ci-cd/builds/build-image/)。
 
 ## 6. 使用自定义域名（可选）
 

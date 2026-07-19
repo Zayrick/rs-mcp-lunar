@@ -6,7 +6,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "build": {
-    "command": "npm run build:worker",
+    "command": "npm run build:cloudflare",
     "watch_dir": ["src", "Cargo.toml", "Cargo.lock"]
   },
   "observability": {
