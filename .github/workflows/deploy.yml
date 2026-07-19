@@ -2,7 +2,7 @@ name: Deploy Cloudflare Worker
 
 on:
   push:
-    branches: [main]
+    branches: [Cloudflare-Worker]
   workflow_dispatch:
 
 concurrency:
