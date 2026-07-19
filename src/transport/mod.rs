@@ -1,1 +1,2 @@
-pub mod http;
+#[cfg(target_arch = "wasm32")]
+pub mod cloudflare;

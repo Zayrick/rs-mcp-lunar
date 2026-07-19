@@ -1,5 +1,11 @@
 /target
+/.wrangler/
+/build/
+/node_modules/
+/worker-startup.cpuprofile
 /.reference/
+.dev.vars
+.dev.vars.*
 .env
 .env.*
 !.env.example

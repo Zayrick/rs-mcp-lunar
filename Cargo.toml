@@ -5,25 +5,25 @@ edition = "2024"
 rust-version = "1.89"
 description = "BaZi and Zi Wei Dou Shu MCP server"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
-anyhow = "1.0.103"
-axum = "0.8.9"
 iztro = "=0.9.0"
 jsonschema = { version = "=0.48.0", default-features = false }
-rmcp = { version = "=2.2.0", default-features = false, features = ["server", "transport-streamable-http-server"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
-tokio = { version = "1.52.4", features = ["macros", "rt-multi-thread", "net", "signal"] }
-tower = { version = "=0.5.3", features = ["util"] }
-tower-http = { version = "=0.7.0", features = ["cors", "set-header"] }
-tracing = "0.1.44"
-tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 tyme4rs = "=1.5.0"
 
-[dev-dependencies]
-http-body-util = "0.1.4"
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+futures-util = { version = "0.3.31", default-features = false }
+worker = "=0.8.5"
+worker-macros = "=0.8.5"
 
 [profile.release]
 codegen-units = 1
 lto = true
-strip = true
+# `strip = true` removes wasm-bindgen's externref transform markers before
+# worker-build 0.8 can generate its module/catch wrappers. wasm-opt performs the
+# final Wasm size optimization after bindgen, so only debug info is stripped here.
+strip = "debuginfo"

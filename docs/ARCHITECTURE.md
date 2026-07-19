@@ -1,38 +1,52 @@
 # Architecture
 
-The project has one runtime target: a native server binary.
+The project has one runtime target: a Rust/WebAssembly Cloudflare Worker.
 
 ```text
-HTTP request
-    │
-    ▼
-Axum + rmcp transport
-    │
-    ▼
-contract registry + JSON Schema validation
-    │
-    ▼
+Cloudflare Worker request
+          │
+          ▼
+workers-rs fetch adapter (HTTP, Origin, CORS, bounded body, SSE)
+          │
+          ▼
+stateless MCP/JSON-RPC dispatcher
+          │
+          ▼
+contract + JSON Schema validation
+          │
+          ▼
 domain dispatcher
-   ├── bazi: tyme4rs adapter → typed facts → Markdown
-   └── ziwei: iztro adapter → typed facts → Markdown
+   ┌──────┴──────┐
+   ▼             ▼
+ BaZi          Zi Wei
+tyme4rs         iztro
+   └──────┬──────┘
+          ▼
+       Markdown
 ```
 
 ## Responsibilities
 
-- `src/contract.rs` is the single source of truth for server identity, route, tool order, descriptions, and input schemas.
-- `src/validation.rs` validates public arguments with `jsonschema`.
-- `src/domain/bazi` and `src/domain/ziwei` own calendar adaptation and rendering. Calendar arithmetic stays in the upstream libraries.
-- `src/mcp` converts the neutral contract to `rmcp` protocol types.
-- `src/transport` owns HTTP routing and SSE transport.
-- `src/main.rs` only configures logging, binds the listener, and handles shutdown.
+- `src/lib.rs` exports the Worker fetch entry point.
+- `src/transport/cloudflare.rs` implements the exact `/lunar` route, bounded request bodies, Origin validation, CORS, and Streamable HTTP responses.
+- `src/mcp/protocol.rs` owns stateless MCP/JSON-RPC dispatch and tool execution results.
+- `src/contract.rs` is the source of truth for server identity, route, tool order, descriptions, and schemas.
+- `src/validation.rs` validates public arguments.
+- `src/domain` owns calendar adaptation and Markdown rendering.
 
-Adding a tool requires one contract entry, one domain use case, one dispatch arm, and tests. Transport code does not calculate calendar facts, and domain code does not build HTTP responses.
+The Worker fetch adapter is the sole transport and deployment target.
 
-## Dependency choices
+## Build and deployment boundary
 
-- `tyme4rs 1.5.0` handles BaZi and sexagenary-calendar arithmetic.
-- `iztro 0.9.0` handles Zi Wei natal and horoscope facts.
-- `jsonschema 0.48.0` handles schema validation.
-- `rmcp 2.2.0` provides the Streamable HTTP MCP server.
+`worker-build` runs in GitHub Actions and produces `build/index.js`, `build/index_bg.wasm`, and their support modules. `wrangler.jsonc` points directly at `build/index.js` and deliberately has no custom `build.command`. Consequently, `wrangler deploy` only bundles and uploads the already-built artifact; Cloudflare does not install Rust or compile the project.
 
-XALEN is not included because its current Chinese API does not replace the complete fortune-cycle, localized presentation, and multi-level horoscope data required by these ten tools. Adding a second calculation engine would increase maintenance without removing either existing engine.
+The deployment workflow runs build and deploy as consecutive steps in one job so the exact generated files are what Wrangler uploads.
+
+## Dependencies
+
+- `tyme4rs 1.5.0`: BaZi and sexagenary-calendar arithmetic.
+- `iztro 0.9.0`: Zi Wei natal and horoscope facts.
+- `jsonschema 0.48.0`: input validation.
+- `worker` and `worker-macros 0.8.5`: Cloudflare Worker bindings and fetch entry point.
+- `worker-build 0.8.5`: deployable Worker bundle generation in CI.
+- Wrangler 4.112.0: local runtime and deployment.

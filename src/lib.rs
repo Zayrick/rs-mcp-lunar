@@ -9,4 +9,16 @@ pub mod mcp;
 pub mod transport;
 pub mod validation;
 
-pub use transport::http::app;
+/// Cloudflare Workers fetch entry point.
+///
+/// `worker-build` exposes this function through its generated JavaScript/Wasm
+/// module.
+#[cfg(target_arch = "wasm32")]
+#[worker::event(fetch)]
+pub async fn fetch(
+    request: worker::Request,
+    env: worker::Env,
+    _context: worker::Context,
+) -> worker::Result<worker::Response> {
+    transport::cloudflare::handle(request, &env).await
+}

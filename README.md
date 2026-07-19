@@ -1,6 +1,6 @@
 # rs-mcp-lunar
 
-BaZi and Zi Wei Dou Shu MCP server written in Rust. It provides a stateless Streamable HTTP endpoint at `/lunar` and returns Markdown-only tool results.
+BaZi and Zi Wei Dou Shu MCP server for Cloudflare Workers, written in Rust and compiled to WebAssembly. It exposes a stateless Streamable HTTP endpoint at `/lunar` and returns Markdown-only tool results.
 
 ## Tools
 
@@ -9,41 +9,49 @@ BaZi and Zi Wei Dou Shu MCP server written in Rust. It provides a stateless Stre
 | BaZi | `bazi_chart`, `bazi_structure`, `bazi_timeline`, `bazi_period_detail`, `bazi_shensha` |
 | Zi Wei Dou Shu | `ziwei_chart`, `ziwei_palace_detail`, `ziwei_horoscope_overview`, `ziwei_scope_detail`, `ziwei_topic_context` |
 
-Calendar calculations are delegated to `tyme4rs` and `iztro`; public input schemas are validated by `jsonschema`.
+Calendar calculations use `tyme4rs` and `iztro`; public input schemas are validated by `jsonschema`.
 
-## Build
+## Local development
 
-Rust 1.89 or newer is required.
-
-```sh
-cargo build --release --locked
-```
-
-The deployable binary is `target/release/rs-mcp-lunar`.
-Build it for the same operating system and CPU architecture as the server. Deployment only requires this binary; the source tree, `Cargo.toml`, and `Cargo.lock` do not need to be copied to the server.
-
-## Run
-
-The server listens on `127.0.0.1:8788` by default:
+Install Rust 1.89+, Node.js 22+, the Wasm target, and the pinned Worker builder:
 
 ```sh
-RUST_LOG=info ./target/release/rs-mcp-lunar
+rustup target add wasm32-unknown-unknown
+cargo install worker-build --version 0.8.5 --locked
+npm ci
+npm run dev
 ```
 
-Override the address with `LUNAR_MCP_ADDR`:
+The local MCP URL is `http://127.0.0.1:8787/lunar`. `npm run dev` builds `build/index.js` and `build/index_bg.wasm` before starting Wrangler.
+
+## Deployment
+
+Pushes to `main` run `.github/workflows/deploy.yml`. GitHub Actions compiles the complete Worker bundle first, then Wrangler uploads that prebuilt bundle without invoking any Cloudflare-side custom build.
+
+Configure these GitHub Actions secrets in the `production` environment:
+
+- `CLOUDFLARE_API_TOKEN`: scoped to deploy Workers.
+- `CLOUDFLARE_ACCOUNT_ID`: the target Cloudflare account ID.
+
+Manual deployment uses the same prebuilt-artifact boundary:
 
 ```sh
-LUNAR_MCP_ADDR=0.0.0.0:8788 RUST_LOG=info ./target/release/rs-mcp-lunar
+npm run build
+npm run deploy:dry-run
+npm run deploy
 ```
 
-The MCP URL is `http://HOST:8788/lunar`. When listening on a public interface, place the process behind a reverse proxy that provides TLS, authentication, rate limiting, and request-size limits.
+Browser clients that send an `Origin` header must be listed in the `MCP_ALLOWED_ORIGINS` Worker variable. See the [deployment guide](docs/CLOUDFLARE_WORKER_DEPLOYMENT.md) for setup and production notes.
 
 ## Verify
 
 ```sh
 cargo fmt --all -- --check
 cargo clippy --all-targets --locked -- -D warnings
+cargo clippy --target wasm32-unknown-unknown --lib --locked -- -D warnings
 cargo test --all-targets --locked
+npm run build
+npm run deploy:dry-run
 ```
 
-See [architecture](docs/ARCHITECTURE.md), [contract notes](docs/COMPATIBILITY.md), [Ubuntu deployment guide](docs/ubuntu-deployment.html), [security notes](SECURITY.md), and [third-party notices](THIRD_PARTY_NOTICES.md).
+See [architecture](docs/ARCHITECTURE.md), [contract notes](docs/COMPATIBILITY.md), [security notes](SECURITY.md), and [third-party notices](THIRD_PARTY_NOTICES.md).
