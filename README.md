@@ -56,6 +56,8 @@ npm run deploy
 
 Wrangler prints the deployed hostname; append the exact path `/lunar` to get the MCP URL. Browser clients that send an `Origin` header must be listed in the `MCP_ALLOWED_ORIGINS` Worker variable. Command-line MCP clients that omit `Origin` continue to work.
 
+For Cloudflare dashboard Git deployments, use `npm run build:cloudflare` as the Build command and `npm run deploy` as the Deploy command. The dashboard build script bootstraps Rust and the Wasm target because Workers Builds does not currently document Rust/Cargo as preinstalled tooling.
+
 See the complete [Cloudflare Worker build and deployment guide](docs/CLOUDFLARE_WORKER_DEPLOYMENT.md), including local verification, Origin configuration, custom domains, and production security.
 
 ## Verify

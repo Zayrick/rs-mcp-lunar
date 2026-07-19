@@ -6,6 +6,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
+    "build:cloudflare": "sh scripts/cloudflare-build.sh",
     "build:worker": "cargo install -q worker-build --version 0.8.5 --locked && worker-build --release",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",

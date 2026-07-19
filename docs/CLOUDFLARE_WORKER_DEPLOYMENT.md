@@ -120,6 +120,21 @@ https://rs-mcp-lunar.<你的-subdomain>.workers.dev/lunar
 
 本地交互登录和非交互 API Token 的官方说明见 [Wrangler authentication](https://developers.cloudflare.com/workers/wrangler/commands/general/)；部署命令见 [Wrangler Workers commands](https://developers.cloudflare.com/workers/wrangler/commands/workers/)。不要把 API Token 写进仓库。
 
+### 从 Cloudflare 控制台连接 Git 部署
+
+进入 `Workers & Pages → Create application → Import a repository`，选择这个仓库，然后填写：
+
+| 配置项 | 值 |
+| --- | --- |
+| Worker name | `rs-mcp-lunar` |
+| Root directory | 留空（仓库根目录） |
+| Build command | `npm run build:cloudflare` |
+| Deploy command | `npm run deploy` |
+
+Workers Builds 的官方构建镜像目前没有把 Rust/Cargo 列为预装工具，因此 `build:cloudflare` 会在首次构建时安装项目声明的最小 Rust 1.89.0 工具链和 `wasm32-unknown-unknown` target，再调用固定版本的 worker-build。可以用 Build variable `RUST_TOOLCHAIN` 覆盖工具链版本。
+
+控制台的 Build command 必须显式填写。Cloudflare 当前说明 Workers Builds 不执行 `wrangler.jsonc` 的 custom build；如果这里只填写 `npm run build:worker`，而镜像中没有 Cargo，就会出现 `cargo: not found`。参见 [Workers Builds configuration](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) 和 [build image](https://developers.cloudflare.com/workers/ci-cd/builds/build-image/)。
+
 ## 6. 使用自定义域名（可选）
 
 域名已托管在同一 Cloudflare 账户时，可将 `wrangler.jsonc` 中的 `workers_dev` 改为 `false`，并添加：
