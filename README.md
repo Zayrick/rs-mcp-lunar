@@ -46,4 +46,4 @@ cargo clippy --all-targets --locked -- -D warnings
 cargo test --all-targets --locked
 ```
 
-See [architecture](docs/ARCHITECTURE.md), [contract notes](docs/COMPATIBILITY.md), [security notes](SECURITY.md), and [third-party notices](THIRD_PARTY_NOTICES.md).
+See [architecture](docs/ARCHITECTURE.md), [contract notes](docs/COMPATIBILITY.md), [Ubuntu deployment guide](docs/ubuntu-deployment.html), [security notes](SECURITY.md), and [third-party notices](THIRD_PARTY_NOTICES.md).
